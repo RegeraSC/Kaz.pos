@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kazuma POS Lite (Classic)</title>
+  <meta name="theme-color" content="#222">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <header>
+    <h1>KAZUMA POS Lite</h1>
+    <div id="pageIndicator">目前頁面：產品目錄</div>
+    <nav id="nav">
+      <a data-section="catalog" href="#section-catalog">產品目錄</a>
+      <a data-section="cart" href="#section-cart">購物車</a>
+      <a data-section="manage" href="#section-manage">產品管理</a>
+      <a data-section="promo" href="#section-promo">優惠設定</a>
+      <a data-section="sales" href="#section-sales">銷售紀錄</a>
+      <a data-section="io" href="#section-io">匯入/匯出</a>
+      <a data-section="settings" href="#section-settings">設定</a>
+    </nav>
+    <div id="verBadge" class="muted" style="position:absolute;right:16px;top:14px;">classic-2.9</div>
+  </header>
+
+  <!-- Catalog -->
+  <section class="section" id="section-catalog" aria-hidden="false">
+    <div class="toolbar">
+      <input id="searchInput" placeholder="搜尋商品名稱/分類/標籤..." autocomplete="off">
+      <div id="tagChips"></div>
+    </div>
+    <div id="catalogGrid" class="grid"></div>
+  </section>
+
+  <!-- Cart -->
+  <section class="section" id="section-cart" aria-hidden="true">
+    <div class="toolbar">
+      <select id="paymentMethod">
+        <option value="Cash">現金</option>
+        <option value="PayMe">PayMe</option>
+        <option value="AlipayHK">Alipay HK</option>
+        <option value="WeChatHK">WeChat Pay HK</option>
+        <option value="FPS">FPS</option>
+      </select>
+      <button id="checkoutBtn" class="primary">結帳</button>
+      <button id="clearCartBtn">清空購物車</button>
+    </div>
+    <table class="table" id="cartTable">
+      <thead><tr><th>品名</th><th>單價</th><th>數量</th><th>贈送</th><th>小計</th><th></th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <div class="total" id="cartTotal"></div>
+  </section>
+
+  <!-- Manage -->
+  <section class="section" id="section-manage" aria-hidden="true">
+    <div class="grid two">
+      <div>
+        <h3>新增 / 編輯商品</h3>
+        <form id="manageForm" novalidate>
+          <div class="form-group">
+            <div class="group-title">基本資料</div>
+            <label>名稱<input id="pName" required></label>
+            <label>分類<input id="pCategory"></label>
+            <label>標籤（逗號分隔）<input id="pTags" placeholder="例：iPhone, iPad"></label>
+          </div>
+
+          <div class="form-group">
+            <div class="group-title">價格 / 成本</div>
+            <div class="row">
+              <label class="col"><span>售價</span><input id="pPrice" type="number" step="0.01" required></label>
+              <label class="col"><span>成本</span><input id="pCost" type="number" step="0.01"></label>
+            </div>
+            <label>特價(可選)<input id="pSpecial" type="number" step="0.01" placeholder="留空=無特價"></label>
+          </div>
+
+          <div class="form-group">
+            <div class="group-title">庫存</div>
+            <label>庫存數量<input id="pStock" type="number" step="1"></label>
+          </div>
+
+          <div class="form-group">
+            <div class="group-title">圖片</div>
+            <label>圖片URL<input id="pImageUrl" placeholder="https://..."></label>
+            <label>或 上傳圖片<input id="pImageFile" type="file" accept="image/*"></label>
+          </div>
+
+          <div class="row">
+            <button id="saveProductBtn" class="primary" type="submit">儲存商品</button>
+            <button id="resetFormBtn" type="reset">重設表單</button>
+          </div>
+        </form>
+      </div>
+      <div>
+        <h3>商品清單</h3>
+        <table class="table" id="productTable">
+          <thead><tr><th>圖</th><th>名稱</th><th>分類</th><th>售價/特價</th><th>成本</th><th>庫存</th><th>標籤</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Promo -->
+  <section class="section" id="section-promo" aria-hidden="true">
+    <h3>分類「買X送Y」</h3>
+    <div class="row">
+      <input id="promoCategory" placeholder="分類，例如：飲品">
+      <input id="promoBuy" type="number" placeholder="買X">
+      <input id="promoGet" type="number" placeholder="送Y">
+      <button id="addPromoBtn">新增/更新規則</button>
+    </div>
+    <table class="table" id="promoTable">
+      <thead><tr><th>分類</th><th>買X</th><th>送Y</th><th></th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <!-- Sales -->
+  <section class="section" id="section-sales" aria-hidden="true">
+    <div class="row">
+      <input id="filterFrom" type="date">
+      <input id="filterTo" type="date">
+      <select id="filterPay">
+        <option value="">全部付款方式</option>
+        <option value="Cash">現金</option>
+        <option value="PayMe">PayMe</option>
+        <option value="AlipayHK">Alipay HK</option>
+        <option value="WeChatHK">WeChat Pay HK</option>
+        <option value="FPS">FPS</option>
+      </select>
+      <button id="applyFilterBtn">套用篩選</button>
+      <button id="exportCsvBtn">匯出 CSV</button>
+    </div>
+    <table class="table" id="salesTable">
+      <thead><tr><th>時間</th><th>筆數</th><th>總額</th><th>付款</th><th>狀態</th><th></th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <div class="total" id="salesSummary"></div>
+  </section>
+
+  <!-- IO -->
+  <section class="section" id="section-io" aria-hidden="true">
+    <h3>資料匯入 / 匯出</h3>
+    <div class="row">
+      <button id="exportJsonBtn">匯出 JSON</button>
+      <input id="importJsonFile" type="file" accept="application/json">
+    </div>
+  </section>
+
+  <!-- Settings -->
+  <section class="section" id="section-settings" aria-hidden="true">
+    <h3>主題與顯示</h3>
+    <div class="form-group">
+      <div class="group-title">貨幣與主題</div>
+      <label>貨幣符號<input id="currencySymbolInput" placeholder="例：$、HK$、¥"></label>
+      <label>低庫存提示數量<input id="lowStockInput" type="number" step="1" min="0" placeholder="預設 5"></label>
+      <div id="themeList" class="row"></div>
+    </div>
+  </section>
+
+  <!-- Mini cart -->
+  <div id="miniCart" class="mini-cart" hidden>
+    <div class="mini-cart-header">
+      <strong>購物車</strong>
+      <button id="miniCartClose" type="button">收合</button>
+    </div>
+    <div id="miniCartBody"></div>
+    <div class="mini-cart-footer">
+      <div class="row">
+        <select id="miniPaymentMethod">
+          <option value="Cash">現金</option>
+          <option value="PayMe">PayMe</option>
+          <option value="AlipayHK">Alipay HK</option>
+          <option value="WeChatHK">WeChat Pay HK</option>
+          <option value="FPS">FPS</option>
+        </select>
+        <div id="miniCartTotal" style="margin-left:auto;font-weight:600;">總計：$0.00</div>
+      </div>
+      <div class="row">
+        <button id="miniToCart" type="button">開啟購物車</button>
+        <button id="miniCheckout" class="primary" type="button">直接結帳</button>
+      </div>
+    </div>
+  </div>
+  <button id="cartFab" class="fab" hidden>🛒<span id="cartFabCount">0</span></button>
+
+  <div id="modalBackdrop" class="modal-backdrop" hidden>
+    <div class="modal">
+      <div class="modal-head"><strong id="modalTitle">詳情</strong><button id="modalClose" type="button">✕</button></div>
+      <div id="modalBody" class="modal-body"></div>
+      <div class="modal-foot"><button id="modalOk" class="primary" type="button">確定</button></div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
